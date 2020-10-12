@@ -1,0 +1,30 @@
+﻿@page "/attestation_page"
+@inject HttpClient Http
+@using System.Net.Http.Headers
+
+<h3>Attestation</h3>
+
+<p>Current count: @(async () => await Gett())</p>
+
+@code {
+
+    public async Task<string> Gett()
+    {
+        Http.BaseAddress = new Uri(@"https://localhost:5001/");
+
+        var dddd = await Http.GetAsync("Education/GetAttestation");
+
+        var res = await dddd.Content.ReadAsStringAsync();
+
+        return res;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+
+
+        ;
+    }
+
+}
