@@ -2,15 +2,44 @@
 
 <h1>Counter</h1>
 
-<p>Current count: @currentCount</p>
+<PasswordField @bind-Password="password" />
+<p>
+    @password</p>
 
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+    <MyComponent Items="@Elemnts" />
+
+    <button class="btn btn-primary" @onclick="AddR">Click me</button>
+
+
+<p>Parent <code>year</code>: @year</p>
+
+<button @onclick="UpdateYear">Update Parent <code>year</code></button>
+
+<ChieldTestCpmponent @bind-Year="year" />
 
 @code {
-    private int currentCount = 0;
 
-    private void IncrementCount()
+    IEnumerable<string> Elemnts = new List<string> { "adfasdfad", "asfadsfasdf", "retwertwert" };
+
+    void AddR()
     {
-        currentCount++;
+        var rr = Elemnts.ToList();
+        rr.Add("gsdjfkgj111111");
+        Elemnts = rr;
+        Elemnts.ToList().ForEach(x => Console.WriteLine(x));
     }
+
+    private string password;
+
+
+
+    private Random r = new Random();
+    private int year = 1979;
+
+    private void UpdateYear()
+    {
+        year = r.Next(1950, 2021);
+        Console.WriteLine("Chg in Parent");
+    }
+
 }

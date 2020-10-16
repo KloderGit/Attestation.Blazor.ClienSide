@@ -1,30 +1,135 @@
 ﻿@page "/attestation_page"
 @inject HttpClient Http
 @using System.Net.Http.Headers
+@using Attestation.BlazorClienSide.PageContext
+@using Attestation.BlazorClienSide.PageContext.AttestationContext
 
-<h3>Attestation</h3>
 
-<p>Current count: @(async () => await Gett())</p>
+<SelectStringComponent 
+                       Title="Вид аттестации:" 
+                       Elements="@TypeMap(Attestations)" 
+                       @bind-Result="attestationType" />
+
+<SelectKeyValueComponent 
+                         Title="Вариант аттестации:" 
+                         Elements="@VariantMap( filterdByType(Attestations,attestationType) )"
+                         @bind-Result="attestationVariant" />
+
+<SelectKeyValueComponent 
+                         Title="Дисциплина:" 
+                         Elements="@DisciplineMap( filterdByVariant( filterdByType(Attestations,attestationType), attestationVariant) )" 
+                         @bind-Result="discipline" />
+
+
+@if (Attestations != null)
+{
+    <h3>Attestation</h3>
+
+    <button @onclick="@( ()=>Console.WriteLine(discipline) )">DDDD</button>
+
+    <button @onclick="@( ()=>attestationVariant = Guid.Empty )">EEEE</button>
+
+
+    @foreach (var item in Attestations.GroupBy(x => x.Control.Type))
+    {
+        <h2>@item.Key</h2>
+
+        @foreach (var value in item.GroupBy(x => x.Control.Key))
+        {
+            <h4>@value.First().Control.Title</h4>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th width="50%">Аттестация</th>
+                        <th width="50%">Проходит</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var att in value.OrderBy(x => x.Title))
+                    {
+                        <tr>
+                            <td>@att.Title</td>
+                            <td>@String.Join(", ", att.Programs.Select(x => x.Title)) </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    }
+}
 
 @code {
 
-    public async Task<string> Gett()
+    List<AttestationDto> Attestations = new List<AttestationDto>();
+
+    public async Task<List<AttestationDto>> GetAttestation()
     {
-        Http.BaseAddress = new Uri(@"https://localhost:5001/");
 
-        var dddd = await Http.GetAsync("Education/GetAttestation");
-
-        var res = await dddd.Content.ReadAsStringAsync();
-
-        return res;
+        var dddd = await Http.GetFromJsonAsync<IEnumerable<AttestationDto>>(@"https://localhost:5001/Education/GetAttestation");
+        Console.WriteLine("Attestation Data are fetched");
+        return dddd.ToList();
     }
 
     protected override async Task OnInitializedAsync()
     {
-
-
-
-        ;
+        Console.WriteLine("Attestation Page is created");
+        Attestations = await GetAttestation();
     }
+
+
+
+    IEnumerable<AttestationDto> filterdBy(IEnumerable<AttestationDto> array, Func<AttestationDto, bool> func)
+    {
+        var res = array.Where(x => func(x));
+        return res;
+    }
+
+    IEnumerable<AttestationDto> filterdByType(IEnumerable<AttestationDto> array, string type)
+    {
+        return filterdBy(array, (x) => x.Control.Type == type);
+    }
+
+    IEnumerable<AttestationDto> filterdByVariant(IEnumerable<AttestationDto> array, Guid variant)
+    {
+        return filterdBy(array, (x) => x.Control.Key == variant);
+    }
+
+
+
+
+    IEnumerable<string> TypeMap(IEnumerable<AttestationDto> attestations)
+    {
+        if (attestations == null || attestations.Any() == false) return new List<string>();
+
+        var types = attestations.Select(x => x.Control.Type).Distinct();
+        return types;
+    }
+
+    string attestationType = String.Empty;
+
+
+    IEnumerable<KeyValuePair<Guid, String>> VariantMap(IEnumerable<AttestationDto> array)
+    {
+        if (array == null || array.Any() == false) return new Dictionary<Guid, String>();
+
+        var groupedControlTypes = array.Select(x => x.Control).GroupBy(x => x.Key);
+        var keyValueControlTypes = groupedControlTypes.Select(x => new KeyValuePair<Guid, String>(x.Key, x.First().Title));
+        return keyValueControlTypes;
+    }
+
+
+    Guid attestationVariant = Guid.Empty;
+
+
+    IEnumerable<KeyValuePair<Guid, String>> DisciplineMap(IEnumerable<AttestationDto> array)
+    {
+        if (array == null || array.Any() == false) return new Dictionary<Guid, String>();
+
+        var keyValue = array.Select(x => new KeyValuePair<Guid, String>(x.Key, x.Title));
+        return keyValue;
+    }
+
+
+    Guid discipline = Guid.Empty;
 
 }

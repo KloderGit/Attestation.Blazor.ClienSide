@@ -1,0 +1,12 @@
+﻿<h3>MyComponent</h3>
+
+@foreach (var itm in Items)
+{ 
+    <p>@itm</p>
+}
+
+
+@code {
+    [Parameter]
+    public IEnumerable<string> Items { get; set; }
+}

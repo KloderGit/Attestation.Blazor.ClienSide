@@ -1,0 +1,37 @@
+﻿
+@if (Elements != null && Elements.Any() != false)
+{
+    <h3>@Title</h3>
+
+    @foreach (var item in Elements)
+    {
+        var id = new Random().Next(1000, 5000);
+        <input type="radio" name="@inputId" id="@id" value="@item" @onchange="OnChanged" checked=@(Result.Equals(item)) />
+        <label for="@id">@item</label>
+    }
+}
+
+
+@code {
+
+    int inputId = new Random().Next(1000, 5000);
+
+    [Parameter]
+    public string Title { get; set; } = "Заголовок компонента";
+
+    [Parameter]
+    public IEnumerable<string> Elements { get; set; }
+
+    [Parameter]
+    public string Result { get; set; } = String.Empty;
+
+    [Parameter]
+    public EventCallback<string> ResultChanged { get; set; }
+
+    private Task OnChanged(ChangeEventArgs e)
+    {
+        Result = e.Value.ToString();
+
+        return ResultChanged.InvokeAsync(Result);
+    }
+}
